@@ -249,6 +249,39 @@
   }
   .notice b{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
 
+  /* ===== 목차 ===== */
+  .toc{border-top:1px solid var(--ink);border-bottom:1px solid var(--line);padding:20px 0 18px;margin:0 0 44px}
+  .toc-h{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .toc a{display:block;padding:5px 0;font-size:14.5px;color:var(--ink-2);line-height:1.5}
+  .toc a:hover{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+  .toc .toc-h4{padding-left:16px;font-size:13.5px;color:var(--muted)}
+
+  /* ===== 크레딧 · 태그 ===== */
+  .credit{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;color:var(--muted)}
+  .tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:20px}
+  .tag{padding:5px 11px;border:1px solid var(--line);font-size:12px;color:var(--muted)}
+  .tag::before{content:'#';color:var(--faint);margin-right:2px}
+
+  /* ===== 이전 글 / 다음 글 ===== */
+  .pn{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);margin-top:56px;border:1px solid var(--line)}
+  .pn-b{background:var(--paper);padding:22px 20px;text-align:left;display:flex;flex-direction:column;gap:8px;transition:background .15s}
+  .pn-b:hover{background:var(--mist)}
+  .pn-b.right{text-align:right}
+  .pn-l{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--faint)}
+  .pn-t{font-size:14.5px;font-weight:600;line-height:1.5;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  @media(max-width:560px){.pn{grid-template-columns:1fr}.pn-b.right{text-align:left}}
+
+  /* ===== 함께 보기 좋은 글 ===== */
+  .rel{margin-top:70px;border-top:1px solid var(--ink);padding-top:26px}
+  .rel-h{font-family:var(--serif);font-size:19px;font-weight:700;margin-bottom:8px}
+  .rel-i{display:block;width:100%;text-align:left;padding:18px 0;border-bottom:1px solid var(--line);transition:opacity .15s}
+  .rel-i:hover{opacity:.6}
+  .rel-c{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+  .rel-t{display:block;font-family:var(--serif);font-size:17px;font-weight:700;line-height:1.45}
+  .rel-s{display:block;margin-top:5px;font-size:13px;color:var(--muted)}
+
   .toon-view{max-width:840px;margin:0 auto;padding:0 0 100px;background:#fff}
   .toon-view img{width:100%;display:block}
   .toon-nav{display:flex;gap:10px;justify-content:center;padding:34px 20px}
@@ -585,37 +618,37 @@ const SEED_SERIES = [
 ];
 
 const SEED_POSTS = [
-  { section:'guide', category:'g_welfare', pub_date:'2026.07.10', thumb:'',
+  { section:'guide', category:'g_welfare', pub_date:'2026.07.10', thumb:'', tags:'복리후생, 경조사비, 신청방법', credit:'글 인사파트',
     title:'우리 회사 복리후생, 한 번에 정리했습니다',
     subtitle:'식대부터 경조사비까지 — 놓치기 쉬운 항목만 모았어요',
     body:'복리후생은 알아야 쓸 수 있습니다. 규정집에 다 적혀 있지만, 막상 필요할 때 어디를 봐야 할지 모르는 경우가 많아요.\n\n## 자주 놓치는 세 가지\n첫째, 경조사비는 **사유 발생일로부터 30일 이내**에 신청해야 합니다. 둘째, 도서구입비는 분기 단위로 이월되지 않습니다. 셋째, 건강검진은 지정 병원 외에도 이용할 수 있어요.\n\n## 신청은 어디서\n모든 복리후생 신청은 인사파트로 접수합니다. 서식은 사내 드라이브 공용 폴더에 있어요.\n\n이 글은 예시 게시물입니다. 관리자 패널에서 수정하거나 삭제할 수 있어요.' },
 
-  { section:'guide', category:'g_counsel', pub_date:'2026.07.07', thumb:'',
+  { section:'guide', category:'g_counsel', pub_date:'2026.07.07', thumb:'', ep_no:'제1화', tags:'고민상담소, 피드백, 리더십', credit:'글 인사파트 · 참여 부서장 3인',
     title:'부서장들의 고민상담소 — 첫 번째 이야기',
     subtitle:'"팀원이 피드백을 받아들이지 않을 때, 어떻게 하시나요?"',
     body:'매달 한 명의 부서장이 익명으로 들어온 고민에 답합니다. 정답을 주기보다, 같은 자리에 서 본 사람의 생각을 나누는 자리예요.\n\n> 피드백이 거부당하는 건 대개 내용 때문이 아니라 타이밍 때문이더라고요.\n\n## 이번 달 고민\n"제 의견을 말하면 팀원이 방어적으로 반응합니다. 제가 말을 잘못하는 걸까요?"\n\n## 부서장의 답\n먼저 확인할 건 **피드백을 주는 자리가 안전한가**입니다. 다른 사람이 듣는 곳에서 지적을 받으면, 내용이 맞아도 사람은 자신을 지키려 합니다.\n\n다음은 순서예요. 무엇이 문제인지 말하기 전에, 무엇을 기대했는지 먼저 말하면 대화가 훨씬 쉬워집니다.\n\n이 글은 예시 게시물입니다.' },
 
-  { section:'news', category:'n_law', pub_date:'2026.07.09', thumb:'',
+  { section:'news', category:'n_law', pub_date:'2026.07.09', thumb:'', tags:'근로기준법, 근로시간, 개정', credit:'글 인사파트',
     title:'2026년 근로기준법 개정, 실무에서 달라지는 것',
     subtitle:'조문은 어렵지만, 바뀌는 건 결국 세 가지입니다',
     body:'법이 바뀌면 가장 먼저 궁금한 건 "그래서 내 연차는 어떻게 되나"입니다. 조문 대신 실무 기준으로 정리했습니다.\n\n## 무엇이 바뀌나\n개정의 핵심은 **기록 의무의 강화**입니다. 사용자가 근로시간을 어떻게 관리했는지 입증할 책임이 커졌어요.\n\n## 우리에게 미치는 영향\n출퇴근 기록 방식이 명확해집니다. 지금까지 관행으로 처리하던 부분들이 문서로 남게 돼요.\n\n## 언제부터인가\n시행일과 유예기간은 사업장 규모에 따라 다릅니다. 히포의 적용 시점은 인사파트에서 별도로 공지합니다.\n\n이 글은 예시 게시물입니다.' },
 
-  { section:'news', category:'n_press', pub_date:'2026.07.02', thumb:'',
+  { section:'news', category:'n_press', pub_date:'2026.07.02', thumb:'', tags:'뉴스, 고용노동부, 오해바로잡기', credit:'글 인사파트',
     title:'이번 주 HR 뉴스 세 줄 요약',
     subtitle:'정부 정책 발표와 노동시장 지표, 핵심만 골랐습니다',
     body:'뉴스는 많은데 정작 우리와 관계있는 건 몇 개 없습니다. 이번 주 읽을 만한 것만 추렸어요.\n\n## 1. 고용노동부 정책 발표\n청년 채용 지원 사업의 대상 범위가 조정되었습니다. 중소·중견기업 기준이 달라진 점이 핵심이에요.\n\n## 2. 노동시장 지표\n이직률이 완만하게 상승했습니다. 업계별 편차가 크다는 점을 함께 봐야 합니다.\n\n## 3. 오해 바로잡기\n"주 4일제가 법제화되었다"는 이야기가 돌지만 사실이 아닙니다. 일부 기업의 자율 시행 사례가 확대 해석된 것입니다.\n\n이 글은 예시 게시물입니다.' },
 
-  { section:'insight', category:'i_interview', pub_date:'2026.07.06', thumb:'',
+  { section:'insight', category:'i_interview', pub_date:'2026.07.06', thumb:'', ep_no:'제1화', tags:'인터뷰, 브랜딩팀, 성장', credit:'글 인사파트 · 사진 히포',
     title:'"저는 아직도 회의 전에 긴장합니다"',
     subtitle:'브랜딩팀 3년 차, 매일의 일과 마음에 대하여',
     body:'잘하는 사람은 긴장하지 않는 줄 알았습니다. 물어보니 아니라고 하네요.\n\n## 하루의 시작\n출근하면 가장 먼저 어제 남겨둔 메모를 엽니다. 작은 습관이지만 하루의 방향을 잡아 줍니다.\n\n## 함께 만드는 결과\n혼자 잘하는 것보다 **같이 잘 되는 것**을 더 중요하게 생각합니다. 초안을 편하게 보여줄 수 있는 분위기가 좋은 결과로 이어집니다.\n\n## 후배에게\n"모르는 걸 늦게 말하는 게 가장 비쌉니다."\n\n이 글은 예시 게시물입니다.' },
 
-  { section:'insight', category:'i_policy', pub_date:'2026.07.03', thumb:'',
+  { section:'insight', category:'i_policy', pub_date:'2026.07.03', thumb:'', tags:'정책, 청년, 자산형성', credit:'글 인사파트',
     title:'알아두면 돈 되는 정책 — 청년 자산형성 편',
     subtitle:'조건만 맞으면 신청 안 할 이유가 없는 제도들',
     body:'좋은 제도는 조용히 시작해서 조용히 끝납니다. 몰라서 못 받는 경우가 정말 많아요.\n\n## 신청 전 확인할 것\n소득 요건과 가입 기간을 먼저 보세요. 대부분의 탈락은 **중도 해지** 때문에 발생합니다.\n\n## 언제 신청하나\n연중 상시 접수인 제도와 분기 단위로 열리는 제도가 섞여 있습니다. 마감을 놓치면 다음 분기를 기다려야 해요.\n\n이 글은 예시 게시물입니다.' },
 
-  { section:'insight', category:'i_trend', pub_date:'2026.06.28', thumb:'',
+  { section:'insight', category:'i_trend', pub_date:'2026.06.28', thumb:'', tags:'트렌드, 브랜딩, 성장', credit:'글 인사파트',
     title:'2026 브랜딩 트렌드, 결국 남는 건 명확함',
     subtitle:'화려함보다 신뢰를 택하는 흐름에 대하여',
     body:'올해 브랜딩의 핵심은 덜어내기입니다. 더 많이 보여주는 대신 더 정확하게 보여주는 쪽으로 무게가 옮겨 갔습니다.\n\n## 왜 지금인가\n정보가 넘칠수록 사람들은 **판단을 아끼려** 합니다. 이해하기 쉬운 브랜드가 선택받는 이유예요.\n\n## 우리에게 주는 힌트\n크리에이티브의 문제가 아니라 편집의 문제입니다. 무엇을 뺄지 정하는 것이 곧 전략입니다.\n\n이 글은 예시 게시물입니다.' },
@@ -847,6 +880,7 @@ function cardHTML(p){
     <div class="meta">
       <span class="dot" style="background:${sec.color}"></span>
       <span class="cat">${esc(ci.en)}</span>
+      ${p.ep_no ? `<span class="cat" style="color:var(--faint)">${esc(p.ep_no)}</span>` : ''}
     </div>
     <h3>${esc(p.title)}</h3>
     ${p.subtitle ? `<div class="sub">${esc(p.subtitle)}</div>` : ''}
@@ -948,31 +982,115 @@ function viewSeries(key){
 /* ============================================================
    리더 오버레이
    ============================================================ */
+/* ---- 읽는 시간 / 목차 / 태그 / 관련 글 ---- */
+function plainText(html){
+  const d = document.createElement('div');
+  d.innerHTML = String(html || '');
+  return (d.textContent || '').replace(/\s+/g, '');
+}
+function readMinutes(html){
+  const n = plainText(html).length;
+  return Math.max(1, Math.round(n / 500)); // 한글 기준 분당 약 500자
+}
+/* 본문의 제목·소제목에 id를 붙이고 목차 항목을 뽑아낸다 */
+function extractToc(html){
+  const box = document.createElement('div');
+  box.innerHTML = html;
+  const items = [];
+  box.querySelectorAll('h3,h4').forEach((h, i) => {
+    const id = 'sec-' + i;
+    h.id = id;
+    items.push({id, text: h.textContent.trim(), level: h.tagName.toLowerCase()});
+  });
+  return { html: box.innerHTML, items };
+}
+function tagList(p){
+  return String(p.tags || '').split(',').map(t => t.trim()).filter(Boolean);
+}
+/* 태그가 겹치는 글 우선, 모자라면 같은 분류에서 채운다 */
+function relatedPosts(p, limit){
+  const mine = tagList(p);
+  const pool = POSTS.filter(x => x.id !== p.id);
+  const scored = pool.map(x => {
+    const shared = tagList(x).filter(t => mine.includes(t)).length;
+    const sameCat = x.category === p.category ? 1 : 0;
+    const sameSec = x.section === p.section ? 1 : 0;
+    return { x, score: shared * 10 + sameCat * 3 + sameSec };
+  }).filter(s => s.score > 0)
+    .sort((a,b) => b.score - a.score || dnum(b.x.pub_date) - dnum(a.x.pub_date));
+  return scored.slice(0, limit || 3).map(s => s.x);
+}
+/* 같은 섹션 안에서 발행일 순 이전 글 / 다음 글 */
+function siblingPosts(p){
+  const list = POSTS.filter(x => x.section === p.section).sort((a,b) => dnum(a.pub_date) - dnum(b.pub_date));
+  const i = list.findIndex(x => x.id === p.id);
+  return { prev: list[i-1] || null, next: list[i+1] || null };
+}
+
 function openPost(id){
   const p = POSTS.find(x => x.id === id);
   if (!p){ location.hash = '#/home'; return; }
   const sec = SECTIONS[p.section] || SECTIONS.guide;
   const ci = catInfo(p.category);
+  const rendered = renderBody(p.body);
+  const toc = extractToc(rendered);
+  const tags = tagList(p);
+  const { prev, next } = siblingPosts(p);
+  const rel = relatedPosts(p, 3);
 
   document.getElementById('readerTitle').textContent = sec.name;
   document.getElementById('readerBody').innerHTML = `
     <article class="read">
       <div class="ameta">
         <span class="dot" style="width:6px;height:6px;border-radius:50%;background:${sec.color}"></span>
-        <span class="cat" style="font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--muted)">${esc(sec.en)} · ${esc(ci.en)}</span>
+        <span style="font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--muted)">${esc(sec.en)} · ${esc(ci.en)}</span>
+        ${p.ep_no ? `<span style="font-size:11.5px;color:var(--muted)">${esc(p.ep_no)}</span>` : ''}
       </div>
       <h1>${esc(p.title)}</h1>
       ${p.subtitle ? `<div class="asub">${esc(p.subtitle)}</div>` : ''}
       <div class="abar">
         <span style="color:${sec.color}">${esc(postCode(p))}</span>
-        <span>${esc(p.pub_date || '')}</span>
+        <span>${esc(p.pub_date || '')} · ${readMinutes(p.body)}분</span>
       </div>
       ${p.thumb ? `<div class="ahero" style="background-image:url('${esc(p.thumb)}')"></div>` : '<div style="height:34px"></div>'}
       ${p.category === 'n_law' ? `<div class="notice"><b>알려드립니다</b>${esc(LAW_NOTICE)}</div>` : ''}
-      <div class="body-copy">${renderBody(p.body)}</div>
+      ${toc.items.length >= 2 ? `
+        <nav class="toc">
+          <div class="toc-h">목차</div>
+          ${toc.items.map(t => `<a href="#${t.id}" class="toc-${t.level}" onclick="jumpTo('${t.id}');return false;">${esc(t.text)}</a>`).join('')}
+        </nav>` : ''}
+      <div class="body-copy">${toc.html}</div>
+
+      ${p.credit ? `<div class="credit">${esc(p.credit)}</div>` : ''}
+      ${tags.length ? `<div class="tags">${tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
+
+      ${(prev || next) ? `
+      <div class="pn">
+        ${prev ? `<button class="pn-b" onclick="location.hash='#/post/${esc(prev.id)}'">
+          <span class="pn-l">이전 글</span><span class="pn-t">${esc(prev.title)}</span></button>` : '<span></span>'}
+        ${next ? `<button class="pn-b right" onclick="location.hash='#/post/${esc(next.id)}'">
+          <span class="pn-l">다음 글</span><span class="pn-t">${esc(next.title)}</span></button>` : '<span></span>'}
+      </div>` : ''}
+
+      ${rel.length ? `
+      <section class="rel">
+        <div class="rel-h">함께 보기 좋은 글</div>
+        ${rel.map(r => `
+          <button class="rel-i" onclick="location.hash='#/post/${esc(r.id)}'">
+            <span class="rel-c">${esc(catInfo(r.category).label)}</span>
+            <span class="rel-t">${esc(r.title)}</span>
+            ${r.subtitle ? `<span class="rel-s">${esc(r.subtitle)}</span>` : ''}
+          </button>`).join('')}
+      </section>` : ''}
     </article>`;
   document.getElementById('reader').classList.add('on');
   document.body.style.overflow = 'hidden';
+}
+
+/* 오버레이 안에서는 해시 이동이 안 되므로 직접 스크롤 */
+function jumpTo(id){
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 function openEp(id){
@@ -1125,10 +1243,23 @@ function renderPostForm(){
     </div>
     <div class="row2">
       <div class="field"><label>발행일</label><input id="fDate" value="${esc(p.pub_date || today())}" placeholder="2026.07.10"></div>
-      <div class="field"><label>대표 이미지 URL</label><input id="fThumb" value="${esc(p.thumb || '')}" placeholder="https://res.cloudinary.com/..."></div>
+      <div class="field"><label>연재 회차 (선택)</label><input id="fEpno" value="${esc(p.ep_no || '')}" placeholder="제3화"></div>
     </div>
+    <div class="field"><label>대표 이미지 URL</label><input id="fThumb" value="${esc(p.thumb || '')}" placeholder="https://res.cloudinary.com/..."></div>
     <div class="field"><label>제목</label><input id="fTitle" value="${esc(p.title || '')}"></div>
     <div class="field"><label>부제</label><input id="fSub" value="${esc(p.subtitle || '')}"></div>
+    <div class="row2">
+      <div class="field">
+        <label>태그</label>
+        <input id="fTags" value="${esc(p.tags || '')}" placeholder="연차, 신입사원, 꿀팁">
+        <div class="hint">쉼표로 구분. 같은 태그를 쓴 글이 하단에 추천됩니다.</div>
+      </div>
+      <div class="field">
+        <label>크레딧</label>
+        <input id="fCredit" value="${esc(p.credit || '')}" placeholder="글 윤솔 · 그림 김OO">
+        <div class="hint">글 하단에 표시됩니다.</div>
+      </div>
+    </div>
     <div class="field">
       <label>본문</label>
       <div class="etools" id="etools">
@@ -1242,8 +1373,41 @@ function initEditor(body){
     const v = sizeSel.value; sizeSel.value = '';
     if (!v) return;
     restoreRange(savedRange);
-    applyInline(ed, {fontSize: v + 'pt'});
+    applySize(ed, parseInt(v, 10));
   });
+}
+
+/* 18pt 이상은 문단 자체를 제목 태그로 바꾼다 (목차 추출용)
+   24pt 이상 → 제목(h3) · 18~20pt → 소제목(h4) · 그 미만 → 본문 안 글자 크기 */
+function applySize(ed, pt){
+  ed.focus();
+  if (pt < 18){
+    // 제목 문단에서 작은 크기를 고르면 본문 문단으로 되돌린다
+    if (closestBlock(ed, 'h3') || closestBlock(ed, 'h4')){
+      document.execCommand('formatBlock', false, '<p>');
+    }
+    applyInline(ed, {fontSize: pt + 'pt'});
+    return;
+  }
+
+  const tag = pt >= 24 ? 'h3' : 'h4';
+  document.execCommand('styleWithCSS', false, false);
+  document.execCommand('formatBlock', false, '<' + tag + '>');
+
+  const block = closestBlock(ed, tag);
+  if (block) block.style.fontSize = pt + 'pt';
+}
+/* 커서가 놓인 문단 요소 찾기 */
+function closestBlock(ed, tag){
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return null;
+  let n = sel.getRangeAt(0).startContainer;
+  if (n.nodeType === 3) n = n.parentNode;
+  while (n && n !== ed){
+    if (n.tagName && n.tagName.toLowerCase() === tag) return n;
+    n = n.parentNode;
+  }
+  return null;
 }
 
 function currentRange(){
@@ -1299,9 +1463,12 @@ async function submitPost(){
     section:  document.getElementById('fSection').value,
     category: document.getElementById('fCategory').value,
     pub_date: document.getElementById('fDate').value.trim(),
+    ep_no:    document.getElementById('fEpno').value.trim(),
     thumb:    document.getElementById('fThumb').value.trim(),
     title:    document.getElementById('fTitle').value.trim(),
     subtitle: document.getElementById('fSub').value.trim(),
+    tags:     document.getElementById('fTags').value.trim(),
+    credit:   document.getElementById('fCredit').value.trim(),
     body:     sanitizeHtml(document.getElementById('fBody').innerHTML).trim(),
   };
   if (!rec.title){ alert('제목을 입력하세요.'); return; }
