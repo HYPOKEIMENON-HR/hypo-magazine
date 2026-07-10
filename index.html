@@ -317,7 +317,7 @@
   .body-copy ul,.body-copy ol{margin:0 0 22px;padding-left:24px}
   .body-copy li{margin-bottom:8px}
   .body-copy a{color:var(--news);text-decoration:underline;text-underline-offset:3px}
-  .body-copy img{margin:30px 0;width:100%}
+  .body-copy img{margin:30px 0;max-width:100%;height:auto;display:block}
   .body-copy table{width:100%;border-collapse:collapse;margin:32px 0;font-size:14.5px;line-height:1.6}
   .body-copy th{
     text-align:left;padding:12px 14px;border-bottom:1.5px solid var(--ink);
@@ -466,7 +466,27 @@
   .editor strong{color:var(--ink)}
   .editor blockquote{border-left:2px solid var(--ink);margin:18px 0;padding-left:16px;font-family:var(--serif);color:var(--ink)}
   .editor ul,.editor ol{margin:0 0 16px;padding-left:22px}
-  .editor img{margin:16px 0;border:1px solid var(--line)}
+  .editor img{margin:16px 0;border:1px solid var(--line);max-width:100%;height:auto;display:block;cursor:pointer}
+  .editor img.sel{outline:2px solid var(--ink);outline-offset:2px;border-color:transparent}
+
+  /* ===== 이미지 크기 조절 ===== */
+  .editor-wrap{position:relative}
+  .imgbar{
+    position:absolute;z-index:10;display:flex;gap:2px;align-items:center;
+    background:var(--ink);padding:5px;box-shadow:0 6px 20px rgba(20,22,26,.22);
+  }
+  .imgbar[hidden]{display:none}
+  .imgbar button{color:#fff;font-size:12px;font-weight:600;padding:6px 10px;white-space:nowrap;border-radius:2px}
+  .imgbar button:hover{background:rgba(255,255,255,.16)}
+  .imgbar button.on{background:rgba(255,255,255,.26)}
+  .imgbar .bsep{width:1px;height:16px;background:rgba(255,255,255,.25);margin:0 4px}
+  .imgbar .del{color:#FF9C8F}
+  .imgbar .pct{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.6);padding:0 8px}
+  .imghandle{
+    position:absolute;z-index:10;width:14px;height:14px;background:var(--ink);border:2px solid #fff;
+    cursor:nwse-resize;box-shadow:0 1px 4px rgba(0,0,0,.3);
+  }
+  .imghandle[hidden]{display:none}
   .editor a{color:var(--news);text-decoration:underline}
   .editor table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14px}
   .editor th,.editor td{border:1px solid var(--line);padding:8px 10px;text-align:left}
@@ -689,6 +709,8 @@ function sanitizeHtml(html){
       if ((name === 'href' || name === 'src') && val.startsWith('javascript:')) n.removeAttribute(a.name);
     });
   });
+  box.querySelectorAll('img.sel').forEach(i => i.classList.remove('sel'));
+  box.querySelectorAll('[class=""]').forEach(n => n.removeAttribute('class'));
   box.querySelectorAll('span').forEach(s => {
     const bare = s.textContent.replace(/\u200B/g, '').trim();
     if (!bare && !s.querySelector('img')) s.remove();
@@ -1640,8 +1662,24 @@ function renderPostForm(){
         <span class="sep"></span>
         <button data-cmd="removeFormat">서식 지우기</button>
       </div>
-      <div class="editor" id="fBody" contenteditable="true" data-ph="여기에 본문을 쓰세요. 문단은 Enter, 줄바꿈은 Shift+Enter."></div>
-      <div class="hint">글꼴과 크기를 먼저 고르고 쓰면 그대로 입력돼요. 이미 쓴 글자는 드래그해서 선택한 뒤 고르면 바뀝니다.<br>법 규정 공유 분류로 저장하면 고지 문구가 자동으로 붙습니다.</div>
+      <div class="editor-wrap">
+        <div class="editor" id="fBody" contenteditable="true" data-ph="여기에 본문을 쓰세요. 문단은 Enter, 줄바꿈은 Shift+Enter."></div>
+        <div class="imgbar" id="imgbar" hidden>
+          <button data-w="25">25%</button>
+          <button data-w="50">50%</button>
+          <button data-w="75">75%</button>
+          <button data-w="100">100%</button>
+          <span class="bsep"></span>
+          <button data-align="left">왼쪽</button>
+          <button data-align="center">가운데</button>
+          <button data-align="right">오른쪽</button>
+          <span class="bsep"></span>
+          <span class="pct" id="imgpct"></span>
+          <button class="del" data-act="delimg">삭제</button>
+        </div>
+        <span class="imghandle" id="imghandle" hidden></span>
+      </div>
+      <div class="hint">글꼴과 크기를 먼저 고르고 쓰면 그대로 입력돼요. 이미 쓴 글자는 드래그해서 선택한 뒤 고르면 바뀝니다.<br>사진은 <strong>클릭하면 크기와 정렬</strong>을 바꿀 수 있고, 오른쪽 아래 모서리를 끌어도 됩니다. 붙여넣기·드래그로도 올라가요.<br>법 규정 공유 분류로 저장하면 고지 문구가 자동으로 붙습니다.</div>
     </div>
     <div class="actions">
       <button class="btn" onclick="submitPost()">${editingPost ? '수정 저장' : '발행하기'}</button>
@@ -1749,6 +1787,110 @@ function initEditor(body){
     if (!v) return;
     restoreRange(savedRange);
     applySize(ed, parseInt(v, 10));
+  });
+
+  initImageTools(ed);
+}
+
+/* ---- 본문 이미지 크기·정렬 ---- */
+function initImageTools(ed){
+  const wrap = ed.closest('.editor-wrap');
+  const bar = document.getElementById('imgbar');
+  const handle = document.getElementById('imghandle');
+  let sel = null;
+
+  const widthPct = img => {
+    const w = img.style.width;
+    if (w && w.endsWith('%')) return Math.round(parseFloat(w));
+    return Math.round(img.getBoundingClientRect().width / ed.clientWidth * 100);
+  };
+
+  function place(){
+    if (!sel){ bar.hidden = true; handle.hidden = true; return; }
+    const w = wrap.getBoundingClientRect(), r = sel.getBoundingClientRect();
+    const top = r.top - w.top, left = r.left - w.left;
+
+    // 에디터 밖으로 스크롤되면 감춘다
+    const e = ed.getBoundingClientRect();
+    if (r.bottom < e.top + 4 || r.top > e.bottom - 4){ bar.hidden = true; handle.hidden = true; return; }
+
+    bar.hidden = false; handle.hidden = false;
+    const barTop = Math.max(top - bar.offsetHeight - 8, top + 8);
+    bar.style.top = barTop + 'px';
+    bar.style.left = Math.max(0, Math.min(left, ed.clientWidth - bar.offsetWidth)) + 'px';
+    handle.style.top = (top + r.height - 7) + 'px';
+    handle.style.left = (left + r.width - 7) + 'px';
+
+    const pct = widthPct(sel);
+    document.getElementById('imgpct').textContent = pct + '%';
+    bar.querySelectorAll('[data-w]').forEach(b => b.classList.toggle('on', Number(b.dataset.w) === pct));
+    const align = sel.style.marginLeft === 'auto'
+      ? (sel.style.marginRight === 'auto' ? 'center' : 'right')
+      : 'left';
+    bar.querySelectorAll('[data-align]').forEach(b => b.classList.toggle('on', b.dataset.align === align));
+  }
+
+  function select(img){
+    if (sel) sel.classList.remove('sel');
+    sel = img;
+    sel.classList.add('sel');
+    if (!sel.style.width) sel.style.width = '100%';
+    place();
+  }
+  function deselect(){
+    if (sel) sel.classList.remove('sel');
+    sel = null;
+    bar.hidden = true; handle.hidden = true;
+  }
+
+  ed.addEventListener('click', e => {
+    if (e.target.tagName === 'IMG') select(e.target);
+    else deselect();
+  });
+  ed.addEventListener('scroll', place);
+  window.addEventListener('resize', place);
+
+  bar.addEventListener('mousedown', e => e.preventDefault());
+  bar.addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b || !sel) return;
+    if (b.dataset.w){
+      sel.style.width = b.dataset.w + '%';
+    } else if (b.dataset.align){
+      const a = b.dataset.align;
+      sel.style.display = 'block';
+      sel.style.marginLeft  = (a === 'left')   ? '0'    : 'auto';
+      sel.style.marginRight = (a === 'right')  ? '0'    : 'auto';
+      if (a === 'center'){ sel.style.marginLeft = 'auto'; sel.style.marginRight = 'auto'; }
+      if (a === 'right'){  sel.style.marginLeft = 'auto'; sel.style.marginRight = '0'; }
+    } else if (b.dataset.act === 'delimg'){
+      sel.remove();
+      deselect();
+      return;
+    }
+    place();
+  });
+
+  // 모서리를 끌어서 자유롭게
+  handle.addEventListener('mousedown', e => {
+    if (!sel) return;
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = sel.getBoundingClientRect().width;
+    const full = ed.clientWidth;
+
+    const move = ev => {
+      const w = startW + (ev.clientX - startX);
+      const pct = Math.max(10, Math.min(100, Math.round(w / full * 100)));
+      sel.style.width = pct + '%';
+      place();
+    };
+    const up = () => {
+      document.removeEventListener('mousemove', move);
+      document.removeEventListener('mouseup', up);
+    };
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', up);
   });
 }
 
