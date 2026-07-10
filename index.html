@@ -429,6 +429,19 @@
   .imgrow input{flex:1}
   .imgrow button{border:1px solid var(--line);padding:0 14px;font-size:16px;color:var(--muted)}
 
+  /* ===== 사진 업로드 ===== */
+  .upload{display:flex;gap:14px;align-items:flex-start}
+  .up-prev{
+    width:116px;height:78px;flex-shrink:0;border:1px solid var(--line);background:var(--mist);
+    background-size:cover;background-position:center;
+  }
+  .up-body{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .up-body input{width:100%;font-size:12px;color:var(--muted)}
+  .up-btn{padding:9px 16px;font-size:13px}
+  .up-btn:disabled{opacity:.5;cursor:wait}
+  .up-clear{font-size:12px;color:var(--muted);border:1px solid var(--line);padding:9px 12px}
+  .up-clear:hover{color:var(--danger);border-color:var(--danger)}
+
   /* ===== 글쓰기 에디터 ===== */
   .etools{display:flex;flex-wrap:wrap;gap:4px;border:1px solid var(--line);border-bottom:none;padding:8px;background:var(--mist)}
   .etools button{
@@ -923,6 +936,86 @@ async function saveTypo(){
   const { error } = await sb.from('mag_settings').upsert({key:'typo', value:TYPO}, {onConflict:'key'});
   if (error){ alert('저장하지 못했습니다: ' + (error.message || error.code)); return; }
   alert('저장했습니다. 모든 임직원에게 이 크기로 보입니다.');
+}
+
+/* ============================================================
+   이미지 업로드 — Supabase Storage
+   ============================================================ */
+const BUCKET = 'mag-images';
+
+/* 파일 하나를 올리고 공개 URL을 돌려준다 */
+async function uploadImage(file){
+  if (!online){ alert('Supabase에 연결돼 있지 않아 업로드할 수 없습니다.'); return null; }
+  if (!file.type.startsWith('image/')){ alert('이미지 파일만 올릴 수 있어요.'); return null; }
+  if (file.size > 10 * 1024 * 1024){ alert('10MB 이하 이미지만 올릴 수 있어요.'); return null; }
+
+  const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+  const name = `${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+
+  const { error } = await sb.storage.from(BUCKET).upload(name, file, {cacheControl:'31536000', upsert:false});
+  if (error){
+    if (/bucket/i.test(error.message || '')){
+      alert(`저장소가 없습니다.\n\nSupabase 대시보드 → Storage → New bucket\n이름: ${BUCKET}\nPublic bucket 체크\n\n한 번만 만들면 계속 쓸 수 있어요.`);
+    } else {
+      alert('업로드하지 못했습니다: ' + (error.message || error.name));
+    }
+    return null;
+  }
+  const { data } = sb.storage.from(BUCKET).getPublicUrl(name);
+  return data.publicUrl;
+}
+
+/* 파일 선택창을 띄우고, 고른 이미지를 올린 뒤 URL을 돌려준다 */
+function pickImage(){
+  return new Promise(resolve => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async () => {
+      const f = input.files && input.files[0];
+      if (!f) return resolve(null);
+      resolve(await uploadImage(f));
+    };
+    input.click();
+  });
+}
+
+/* 썸네일 입력칸 + [사진 올리기] 버튼 한 세트 */
+function imageField(id, label, value, hint){
+  return `
+    <div class="field">
+      <label>${esc(label)}</label>
+      <div class="upload">
+        <span class="up-prev" id="${id}_prev" ${value ? `style="background-image:url('${esc(value)}')"` : ''}></span>
+        <div class="up-body">
+          <button type="button" class="btn ghost up-btn" onclick="uploadTo('${id}')">사진 올리기</button>
+          <button type="button" class="up-clear" onclick="clearImg('${id}')">지우기</button>
+          <input id="${id}" value="${esc(value || '')}" placeholder="사진을 올리면 주소가 자동으로 채워집니다" oninput="syncPrev('${id}')">
+        </div>
+      </div>
+      ${hint ? `<div class="hint">${hint}</div>` : ''}
+    </div>`;
+}
+async function uploadTo(id){
+  const btn = document.querySelector(`#${id}`).closest('.upload').querySelector('.up-btn');
+  const old = btn.textContent;
+  btn.textContent = '올리는 중...';
+  btn.disabled = true;
+  const url = await pickImage();
+  btn.textContent = old;
+  btn.disabled = false;
+  if (!url) return;
+  document.getElementById(id).value = url;
+  syncPrev(id);
+}
+function clearImg(id){
+  document.getElementById(id).value = '';
+  syncPrev(id);
+}
+function syncPrev(id){
+  const v = document.getElementById(id).value.trim();
+  const prev = document.getElementById(id + '_prev');
+  if (prev) prev.style.backgroundImage = v ? `url('${v}')` : '';
 }
 
 /* ============================================================
@@ -1494,7 +1587,7 @@ function renderPostForm(){
       <div class="field"><label>발행일</label><input id="fDate" value="${esc(p.pub_date || today())}" placeholder="2026.07.10"></div>
       <div class="field"><label>연재 회차 (선택)</label><input id="fEpno" value="${esc(p.ep_no || '')}" placeholder="제3화"></div>
     </div>
-    <div class="field"><label>대표 이미지 URL</label><input id="fThumb" value="${esc(p.thumb || '')}" placeholder="https://res.cloudinary.com/..."></div>
+    ${imageField('fThumb', '대표 이미지', p.thumb, '홈 히어로와 카드에 쓰입니다. 가로가 긴 사진(16:10)이 잘 맞아요.')}
     <div class="field"><label>제목</label><input id="fTitle" value="${esc(p.title || '')}"></div>
     <div class="field"><label>부제</label><input id="fSub" value="${esc(p.subtitle || '')}"></div>
     <div class="row2">
@@ -1577,11 +1670,31 @@ function initEditor(body){
   const ed = document.getElementById('fBody');
   ed.innerHTML = body ? renderBody(body) : '';
 
-  // 붙여넣기는 항상 순수 텍스트로
-  ed.addEventListener('paste', e => {
+  // 붙여넣기: 이미지면 업로드, 아니면 순수 텍스트
+  ed.addEventListener('paste', async e => {
+    const items = [...((e.clipboardData || {}).items || [])];
+    const imgItem = items.find(i => i.type && i.type.startsWith('image/'));
+    if (imgItem){
+      e.preventDefault();
+      const url = await uploadImage(imgItem.getAsFile());
+      if (url) document.execCommand('insertImage', false, url);
+      return;
+    }
     e.preventDefault();
     const t = (e.clipboardData || window.clipboardData).getData('text/plain');
     document.execCommand('insertText', false, t);
+  });
+
+  // 드래그해서 놓아도 올라간다
+  ed.addEventListener('dragover', e => { if (e.dataTransfer.types.includes('Files')) e.preventDefault(); });
+  ed.addEventListener('drop', async e => {
+    const files = [...((e.dataTransfer || {}).files || [])].filter(f => f.type.startsWith('image/'));
+    if (!files.length) return;
+    e.preventDefault();
+    for (const f of files){
+      const url = await uploadImage(f);
+      if (url) document.execCommand('insertImage', false, url);
+    }
   });
 
   const tools = document.getElementById('etools');
@@ -1589,7 +1702,7 @@ function initEditor(body){
   tools.addEventListener('mousedown', e => {
     if (e.target.closest('button')) e.preventDefault();
   });
-  tools.addEventListener('click', e => {
+  tools.addEventListener('click', async e => {
     const b = e.target.closest('button');
     if (!b) return;
     ed.focus();
@@ -1602,8 +1715,17 @@ function initEditor(body){
       const url = prompt('링크 주소를 붙여넣으세요', 'https://');
       if (url) document.execCommand('createLink', false, url);
     } else if (b.dataset.act === 'image'){
-      const url = prompt('이미지 URL을 붙여넣으세요 (Cloudinary 등)', 'https://');
-      if (url) document.execCommand('insertImage', false, url);
+      const saved = currentRange();
+      const label = b.textContent;
+      b.textContent = '올리는 중...';
+      b.disabled = true;
+      const url = await pickImage();
+      b.textContent = label;
+      b.disabled = false;
+      if (!url) return;
+      ed.focus();
+      restoreRange(saved);
+      document.execCommand('insertImage', false, url);
     } else if (b.dataset.act === 'table'){
       insertTable();
     }
@@ -1769,12 +1891,15 @@ function renderEpForm(){
       <div class="field"><label>회차</label><input id="eEp" value="${esc(e.ep || '')}" placeholder="EP.01"></div>
     </div>
     <div class="field"><label>제목</label><input id="eTitle" value="${esc(e.title || '')}"></div>
-    <div class="field"><label>썸네일 URL</label><input id="eThumb" value="${esc(e.thumb || '')}" placeholder="https://res.cloudinary.com/..."></div>
+    ${imageField('eThumb', '썸네일', e.thumb, '회차 목록에 보이는 작은 이미지입니다.')}
     <div class="field">
-      <label>본문 이미지 URL (위에서 아래 순서로 노출)</label>
+      <label>본문 이미지 (위에서 아래 순서로 노출)</label>
       <div id="imgList">${imgs.map(u => imgRow(u)).join('')}</div>
-      <button class="btn ghost" style="padding:8px 16px;font-size:13px" onclick="addImgRow()">+ 이미지 추가</button>
-      <div class="hint">Cloudinary 등 외부 URL을 붙여넣으세요. base64는 사용하지 않습니다.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+        <button class="btn ghost" style="padding:8px 16px;font-size:13px" onclick="uploadPages()">사진 여러 장 올리기</button>
+        <button class="btn ghost" style="padding:8px 16px;font-size:13px" onclick="addImgRow()">빈 줄 추가</button>
+      </div>
+      <div class="hint">사진을 고르면 순서대로 아래에 붙습니다. 이미 있는 주소(Cloudinary 등)를 붙여넣어도 돼요.</div>
     </div>
     <div class="actions">
       <button class="btn" onclick="submitEp()">${editingEp ? '수정 저장' : '회차 등록'}</button>
@@ -1800,6 +1925,25 @@ function imgRow(v){
 }
 function addImgRow(){
   document.getElementById('imgList').insertAdjacentHTML('beforeend', imgRow(''));
+}
+/* 사진 여러 장을 한 번에 올려 순서대로 줄을 채운다 */
+function uploadPages(){
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*'; input.multiple = true;
+  input.onchange = async () => {
+    const files = [...(input.files || [])];
+    if (!files.length) return;
+    const list = document.getElementById('imgList');
+    // 비어 있는 줄은 먼저 치운다
+    list.querySelectorAll('.imgrow').forEach(r => {
+      if (!r.querySelector('.imgUrl').value.trim()) r.remove();
+    });
+    for (let i = 0; i < files.length; i++){
+      const url = await uploadImage(files[i]);
+      if (url) list.insertAdjacentHTML('beforeend', imgRow(url));
+    }
+  };
+  input.click();
 }
 async function submitEp(){
   const images = Array.from(document.querySelectorAll('#imgList .imgUrl')).map(i => i.value.trim()).filter(Boolean);
@@ -1830,18 +1974,14 @@ async function removeEp(id){
 /* ---- 시리즈 커버 ---- */
 function renderCoverForm(){
   document.getElementById('tabBody').innerHTML = `
-    ${SERIES.map(s => `
-      <div class="field">
-        <label>${esc(s.name)} 커버 URL</label>
-        <input class="coverUrl" data-key="${esc(s.key)}" value="${esc(s.cover || '')}" placeholder="https://res.cloudinary.com/...">
-      </div>`).join('')}
+    ${SERIES.map(s => imageField('cover_' + s.key, s.name + ' 커버', s.cover, '')).join('')}
     <div class="actions"><button class="btn" onclick="submitCovers()">커버 저장</button></div>
     <div class="hint" style="margin-top:14px">웹툰 회차와 커버는 기존 웹툰 사이트와 같은 <code>webtoons</code> · <code>series_covers</code> 테이블을 씁니다. 한쪽에서 고치면 양쪽에 반영돼요.</div>`;
 }
 async function submitCovers(){
-  const inputs = Array.from(document.querySelectorAll('.coverUrl'));
-  for (const el of inputs){
-    await saveSeriesCover(el.dataset.key, el.value.trim());
+  for (const s of SERIES){
+    const el = document.getElementById('cover_' + s.key);
+    if (el) await saveSeriesCover(s.key, el.value.trim());
   }
   alert('저장했습니다.');
   renderAdmin();
