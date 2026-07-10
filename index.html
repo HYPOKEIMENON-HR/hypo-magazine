@@ -1442,8 +1442,7 @@ function openPost(id){
           </button>`).join('')}
       </section>` : ''}
     </article>`;
-  document.getElementById('reader').classList.add('on');
-  document.body.style.overflow = 'hidden';
+  openReader();
 }
 
 /* 오버레이 안에서는 해시 이동이 안 되므로 직접 스크롤 */
@@ -1476,8 +1475,16 @@ function openEp(id){
         <button onclick="location.hash='#/ep/${next ? esc(next.id) : ''}/${esc(e.series)}'" ${next ? '' : 'disabled'}>다음화 →</button>
       </div>
     </div>`;
-  document.getElementById('reader').classList.add('on');
+  openReader();
+}
+
+/* 오버레이를 열고, 항상 맨 위에서 시작한다 */
+function openReader(){
+  const r = document.getElementById('reader');
+  r.classList.add('on');
   document.body.style.overflow = 'hidden';
+  r.scrollTop = 0;                       // 이전 글에서 내려간 위치가 남지 않도록
+  requestAnimationFrame(() => { r.scrollTop = 0; });  // 렌더 직후 한 번 더
 }
 
 function closeReader(silent){
